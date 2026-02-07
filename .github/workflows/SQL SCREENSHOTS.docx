@@ -1,0 +1,121 @@
+CREATE DATABASE movie
+USE movie
+CREATE TABLE movies (
+    movie_id INT PRIMARY KEY AUTO_INCREMENT,
+    title VARCHAR(255) NOT NULL,
+    release_year INT,
+    genre VARCHAR(100),
+    description TEXT,
+    rating DECIMAL(3,1) CHECK (rating >= 0 AND rating <= 10)
+);
+
+CREATE TABLE media (
+    media_id INT PRIMARY KEY AUTO_INCREMENT,
+    movie_id INT NOT NULL,
+    media_type ENUM('poster','trailer','still','clip','behind_the_scenes') NOT NULL,
+    url VARCHAR(500) NOT NULL,
+    description TEXT,
+    FOREIGN KEY (movie_id) REFERENCES movies(movie_id) ON DELETE CASCADE
+);
+
+CREATE TABLE actors (
+    actor_id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    birthdate DATE,
+    nationality VARCHAR(100)
+);
+CREATE TABLE genres (
+    genre_id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100) NOT NULL UNIQUE
+);
+CREATE TABLE users (
+    user_id INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    email VARCHAR(255) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    full_name VARCHAR(255),
+    join_date DATE
+);
+CREATE TABLE reviews (
+    review_id INT PRIMARY KEY AUTO_INCREMENT,
+    movie_id INT NOT NULL,
+    user_id INT NOT NULL,
+    rating DECIMAL(3,1) CHECK (rating >= 0 AND rating <= 10),
+    comment TEXT,
+    review_date DATE,
+    FOREIGN KEY (movie_id) REFERENCES movies(movie_id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+CREATE TABLE artists (
+    artist_id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    birthdate DATE,
+    nationality VARCHAR(100)
+);
+CREATE TABLE skills (
+    skill_id INT PRIMARY KEY AUTO_INCREMENT,
+    skill_name VARCHAR(100) NOT NULL UNIQUE
+);
+CREATE TABLE artist_movie_roles (
+    artist_id INT NOT NULL,
+    movie_id INT NOT NULL,
+    role VARCHAR(255) NOT NULL,
+    PRIMARY KEY (artist_id, movie_id, role),
+    FOREIGN KEY (artist_id) REFERENCES artists(artist_id) ON DELETE CASCADE,
+    FOREIGN KEY (movie_id) REFERENCES movies(movie_id) ON DELETE CASCADE
+);
+CREATE TABLE artist_movie_roles (
+    artist_id INT NOT NULL,
+    movie_id INT NOT NULL,
+    role VARCHAR(255) NOT NULL,
+    PRIMARY KEY (artist_id, movie_id, role),
+    FOREIGN KEY (artist_id) REFERENCES artists(artist_id) ON DELETE CASCADE,
+    FOREIGN KEY (movie_id) REFERENCES movies(movie_id) ON DELETE CASCADE
+);
+-- Insert users
+INSERT INTO users (username, email, password_hash, full_name)
+VALUES ('john_doe', 'john@example.com', 'hashed_pw', 'John Doe'),
+       ('jane_smith', 'jane@example.com', 'hashed_pw', 'Jane Smith');
+
+-- Insert a movie
+INSERT INTO movies (title, release_year, description, rating)
+VALUES ('Interstellar', 2014, 'Sci-fi epic by Christopher Nolan', 8.6);
+
+-- Insert reviews
+INSERT INTO reviews (movie_id, user_id, rating, comment)
+VALUES (1, 1, 9.0, 'Amazing visuals and story!'),
+       (1, 2, 8.5, 'Great movie but a bit long.');
+
+-- Insert artists
+INSERT INTO artists (name, birthdate, nationality)
+VALUES ('Leonardo da Vinci', '1452-04-15', 'Italian'),
+       ('Freddie Mercury', '1946-09-05', 'British');
+
+-- Insert skills
+INSERT INTO skills (skill_name)
+VALUES ('Painting'), ('Sculpting'), ('Singing'), ('Songwriting');
+INSERT INTO artist_movie_roles (artist_id, movie_id, role) VALUES
+(1, 1, 'Actor'),
+(1, 1, 'Director'),
+(2, 2, 'Actor'),
+(2, 2, 'Singer'),
+(2, 2, 'Songwriter');
+
+
+
+
+
+
+
+
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 

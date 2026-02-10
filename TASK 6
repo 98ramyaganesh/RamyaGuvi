@@ -1,0 +1,176 @@
+PROBLEM 1:BANK ACCOUNT
+
+class BankAccount:
+    def __init__(self, account_number, balance=0.0):
+        self.account_number = account_number
+        self.__balance = balance   # Encapsulation: private attribute
+
+    def deposit(self, amount):
+        if amount > 0:
+            self.__balance += amount
+            print(f"Deposited {amount}. New balance: {self.__balance}")
+        else:
+            print("Deposit amount must be positive.")
+
+    def withdraw(self, amount):
+        if amount > 0 and amount <= self.__balance:
+            self.__balance -= amount
+            print(f"Withdrew {amount}. New balance: {self.__balance}")
+        else:
+            print("Withdrawal denied. Insufficient balance or invalid amount.")
+
+    def get_balance(self):
+        return self.__balance
+
+
+class SavingsAccount(BankAccount):
+    def __init__(self, account_number, balance=0.0, interest_rate=0.05):
+        super().__init__(account_number, balance)
+        self.interest_rate = interest_rate
+
+    def calculate_interest(self):
+        interest = self.get_balance() * self.interest_rate
+        print(f"Interest calculated: {interest}")
+        return interest
+
+
+class CurrentAccount(BankAccount):
+    def __init__(self, account_number, balance=0.0, minimum_balance=500.0):
+        super().__init__(account_number, balance)
+        self.minimum_balance = minimum_balance
+
+    def withdraw(self, amount):
+        if amount > 0 and (self.get_balance() - amount) >= self.minimum_balance:
+            super().withdraw(amount)
+        else:
+            print("Withdrawal denied. Minimum balance requirement not met.")
+
+# Savings Account demo
+print("---- Savings Account ----")
+savings = SavingsAccount("SavAcc123", 1000, 2)
+savings.deposit(500)
+savings.calculate_interest()
+savings.withdraw(200)
+print(f"Final Savings Balance: {savings.get_balance()}")
+
+# Current Account demo
+print("\n---- Current Account ----")
+current = CurrentAccount("CurAcc456", 2000, 1000)
+current.withdraw(800)   # Allowed
+current.withdraw(1500)  # Denied due to minimum balance
+print(f"Final Current Balance: {current.get_balance()}")
+
+PROBLEM 2: EMPLOYEE MANAGEMENT
+
+class Employee:
+    def __init__(self, name, base_salary):
+        self.name = name
+        self.base_salary = base_salary
+
+    def calculate_salary(self):
+        # Base class method to be overridden
+        return self.base_salary
+
+
+class RegularEmployee(Employee):
+    def __init__(self, name, base_salary, bonus=0.0):
+        super().__init__(name, base_salary)
+        self.bonus = bonus
+
+    def calculate_salary(self):
+        total_salary = self.base_salary + self.bonus
+        print(f"Regular Employee {self.name} Salary: {total_salary}")
+        return total_salary
+
+
+class ContractEmployee(Employee):
+    def __init__(self, name, hourly_rate, hours_worked):
+        super().__init__(name, 0)  # Base salary not used here
+        self.hourly_rate = hourly_rate
+        self.hours_worked = hours_worked
+
+    def calculate_salary(self):
+        total_salary = self.hourly_rate * self.hours_worked
+        print(f"Contract Employee {self.name} Salary: {total_salary}")
+        return total_salary
+
+
+class Manager(Employee):
+    def __init__(self, name, base_salary, allowance=0.0, bonus=0.0):
+        super().__init__(name, base_salary)
+        self.allowance = allowance
+        self.bonus = bonus
+
+    def calculate_salary(self):
+        total_salary = self.base_salary + self.allowance + self.bonus
+        print(f"Manager {self.name} Salary: {total_salary}")
+        return total_salary
+
+employees = [
+    RegularEmployee("Ram", 60000, bonus=5000),
+    ContractEmployee("Divya", hourly_rate=1500, hours_worked=40),
+    Manager("Varun", 90000, allowance=15000, bonus=14000)
+]
+
+print("---- Salary Calculation ----")
+for emp in employees:
+    emp.calculate_salary()  
+
+PROBLEM 3:VEHICLE RENTAL
+
+class Vehicle:
+    def __init__(self, model, rental_rate):
+        self.model = model
+        self.rental_rate = rental_rate
+
+    def calculate_rental(self, hours):
+        # Base calculation: rental_rate × hours
+        return self.rental_rate * hours
+
+
+class Car(Vehicle):
+    def __init__(self, model, rental_rate, luxury_tax=0.0):
+        super().__init__(model, rental_rate)
+        self.luxury_tax = luxury_tax
+
+    def calculate_rental(self, hours):
+        cost = super().calculate_rental(hours) + self.luxury_tax
+        print(f"Car {self.model} Rental Cost: {cost}")
+        return cost
+
+
+class Bike(Vehicle):
+    def __init__(self, model, rental_rate, helmet_fee=0.0):
+        super().__init__(model, rental_rate)
+        self.helmet_fee = helmet_fee
+
+    def calculate_rental(self, hours):
+        cost = super().calculate_rental(hours) + self.helmet_fee
+        print(f"Bike {self.model} Rental Cost: {cost}")
+        return cost
+
+
+class Truck(Vehicle):
+    def __init__(self, model, rental_rate, load_fee=0.0):
+        super().__init__(model, rental_rate)
+        self.load_fee = load_fee
+
+    def calculate_rental(self, hours):
+        cost = super().calculate_rental(hours) + self.load_fee
+        print(f"Truck {self.model} Rental Cost: {cost}")
+        return cost
+
+vehicles = [
+    Car("XUV", rental_rate=200, luxury_tax=50),
+    Bike("Scooty", rental_rate=100, helmet_fee=20),
+    Truck("HeavyTruck", rental_rate=500, load_fee=200)
+]
+
+print("---- Vehicle Rental Calculation ----")
+for v in vehicles:
+    v.calculate_rental(5)  # Polymorphic call with 5 rental hours
+
+
+
+
+

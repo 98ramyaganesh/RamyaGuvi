@@ -1,0 +1,236 @@
+1.Seperate evan and odd numbers in a list
+# Original list
+numbers = [10, 501, 22, 37, 100, 999, 87, 351]
+
+# Lists to hold even and odd numbers
+even_numbers = []
+odd_numbers = []
+
+for num in numbers:
+    if num % 2 == 0:
+        even_numbers.append(num)
+    else:
+        odd_numbers.append(num)
+
+print("Even numbers list:", even_numbers)
+print("Odd numbers list:", odd_numbers)
+OUTPUT:
+Even numbers list: [10, 22, 100]
+Odd numbers list: [501, 37, 999, 87, 351]
+
+
+2.PRIME NUMBERS IN A LIST
+# Original list
+numbers = [10, 501, 22, 37, 100, 999, 87, 351]
+
+# Function to check if a number is prime
+def is_prime(n):
+    if n <= 1:
+        return False
+    if n == 2:
+        return True
+    if n % 2 == 0:
+        return False
+    for i in range(3, int(n**0.5) + 1, 2):
+        if n % i == 0:
+            return False
+    return True
+
+# Create list of prime numbers
+prime_numbers = [num for num in numbers if is_prime(num)]
+
+# Count of prime numbers
+prime_count = len(prime_numbers)
+
+print("Prime numbers list:", prime_numbers)
+print("Total prime numbers:", prime_count)
+OUTPUT:
+Prime numbers list: [37]
+Total prime numbers: 1
+
+
+3.HAPPY NUMBERS:
+# Function to check if a number is happy
+def is_happy(n):
+    seen = set()
+    while n != 1 and n not in seen:
+        seen.add(n)
+        n = sum(int(digit) ** 2 for digit in str(n))
+    return n == 1
+
+# Given list
+numbers = [10, 501, 22, 37, 100, 999, 87, 351]
+
+# Find happy numbers
+happy_numbers = [num for num in numbers if is_happy(num)]
+
+print("Happy numbers list:", happy_numbers)
+print("Total happy numbers:", len(happy_numbers))
+OUTPUT:
+Happy numbers list: [10, 37, 100]
+Total happy numbers: 3
+
+
+4.SUM OF FIRST AND LAST DIGIT OF INTEGER
+def sum_first_last_digit(n):
+    # Convert number to string for easy digit access
+    num_str = str(n)
+    
+    # First digit
+    first_digit = int(num_str[0])
+    
+    # Last digit
+    last_digit = int(num_str[-1])
+    
+    # Sum of first and last digit
+    return first_digit + last_digit
+
+
+# Example usage
+number = int(input("Enter an integer: "))
+result = sum_first_last_digit(number)
+print(f"Sum of first and last digit of {number} is: {result}")
+OUTPUT:
+Enter an integer: 351
+Sum of first and last digit of 351 is: 4
+
+
+5.MAKE RS 10 USING 1,2,5 AND 10 RS
+def make_ten():
+    ways = []
+    # Loop through possible counts of each coin
+    for ones in range(11):          # max 10 Rs1 coins
+        for twos in range(6):       # max 5 Rs2 coins
+            for fives in range(3):  # max 2 Rs5 coins
+                for tens in range(2): # max 1 Rs10 coin
+                    total = ones*1 + twos*2 + fives*5 + tens*10
+                    if total == 10:
+                        ways.append((ones, twos, fives, tens))
+    return ways
+
+# Run the function
+solutions = make_ten()
+
+print("Ways to make Rs 10 using Rs1, Rs2, Rs5, Rs10:")
+for idx, (ones, twos, fives, tens) in enumerate(solutions, start=1):
+    print(f"{idx}. Rs1 coins={ones}, Rs2 coins={twos}, Rs5 coins={fives}, Rs10 coins={tens}")
+
+print(f"\nTotal number of ways: {len(solutions)}")
+OUTPUT:
+Ways to make Rs 10 using Rs1, Rs2, Rs5, Rs10:
+1. Rs1 coins=10, Rs2 coins=0, Rs5 coins=0, Rs10 coins=0
+2. Rs1 coins=8, Rs2 coins=1, Rs5 coins=0, Rs10 coins=0
+3. Rs1 coins=6, Rs2 coins=2, Rs5 coins=0, Rs10 coins=0
+...
+12. Rs1 coins=0, Rs2 coins=0, Rs5 coins=2, Rs10 coins=0
+13. Rs1 coins=0, Rs2 coins=0, Rs5 coins=0, Rs10 coins=1
+
+Total number of ways: 13
+
+
+6.FIND DUPLICATE OF 3 LISTS
+# Given three lists
+list1 = [1, 2, 3, 4, 5, 10]
+list2 = [3, 5, 7, 9, 10]
+list3 = [2, 5, 10, 12, 15]
+
+# Find duplicates across all three lists
+duplicates = set(list1) & set(list2) & set(list3)
+
+print("Duplicates in all three lists:", list(duplicates))
+OUTPUT:
+Duplicates in all three lists: [10, 5]
+
+
+7.FIRST NON REPEATING ELEMENT IN LIST 
+def first_non_repeating(nums):
+    # Dictionary to store frequency of each number
+    freq = {}
+    for num in nums:
+        freq[num] = freq.get(num, 0) + 1
+
+    # Find the first element with frequency 1
+    for num in nums:
+        if freq[num] == 1:
+            return num
+    return None  # If no non-repeating element exists
+
+
+# Example usage
+numbers = [10, 501, 22, 37, 100, 999, 87, 351, 22, 10, 501]
+result = first_non_repeating(numbers)
+
+if result:
+    print(f"First non-repeating element is: {result}")
+else:
+    print("No non-repeating element found.")
+OUTPUT:
+First non-repeating element is: 37
+
+
+8.MINMIMUM ELEMENT IN A SORTED LIST:
+def find_min(sorted_list):
+    if not sorted_list:   # check if list is empty
+        return None
+    return sorted_list[0]
+
+# Example usage
+numbers = [10, 22, 37, 87, 100, 351, 501, 999]  # sorted list
+minimum = find_min(numbers)
+
+if minimum is not None:
+    print(f"The minimum element in the list is: {minimum}")
+else:
+    print("The list is empty.")
+OUTPUT:
+The minimum element in the list is: 10
+
+
+9.FIND TRIPLET WHOSE SUM IS SAME AS GIVEN VALUE
+def find_triplets(nums, target):
+    triplets = []
+    n = len(nums)
+    # Check all combinations of three numbers
+    for i in range(n):
+        for j in range(i+1, n):
+            for k in range(j+1, n):
+                if nums[i] + nums[j] + nums[k] == target:
+                    triplets.append((nums[i], nums[j], nums[k]))
+    return triplets
+
+# Example usage
+numbers = [10, 20, 30, 9]
+target_sum = 59
+
+result = find_triplets(numbers, target_sum)
+
+print("Triplets with sum", target_sum, ":", result)
+OUTPUT:
+Triplets with sum 59 : [(20, 30, 9)]
+
+
+10.FIND SUBLIST SUM EQUALS TO 0
+def has_zero_sum_sublist(nums):
+    prefix_sum = 0
+    seen = set()
+
+    for num in nums:
+        prefix_sum += num
+        # If prefix_sum is 0 or already seen, sublist with sum 0 exists
+        if prefix_sum == 0 or prefix_sum in seen:
+            return True
+        seen.add(prefix_sum)
+    return False
+
+# Example usage
+numbers = [4, 2, -3, 1, 6]
+result = has_zero_sum_sublist(numbers)
+
+if result:
+    print("There exists a sublist with sum equal to 0.")
+else:
+    print("No sublist with sum equal to 0.")
+OUTPUT:
+There exists a sublist with sum equal to 0.
+
+

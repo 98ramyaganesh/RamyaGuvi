@@ -1,0 +1,165 @@
+1.TITLE OF WEBPAGE
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+import time
+
+# Path to your ChromeDriver (update this path if needed)
+service = Service("path/to/chromedriver")
+
+# Initialize the Chrome browser
+driver = webdriver.Chrome(service=service)
+
+# Open the Saucedemo Labs website
+driver.get("https://www.saucedemo.com/")
+
+# Wait for a couple of seconds to ensure page loads
+time.sleep(2)
+
+# Get and print the title of the webpage
+print("Page Title:", driver.title)
+
+# Close the browser
+driver.quit()
+OUTPUT:
+Page Title: Swag Labs
+
+2.URL OF WEBPAGE
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+import time
+
+# Path to your ChromeDriver (update this path if needed)
+service = Service("path/to/chromedriver")
+
+# Initialize the Chrome browser
+driver = webdriver.Chrome(service=service)
+
+# Open the Saucedemo Labs website
+driver.get("https://www.saucedemo.com/")
+
+# Wait for a couple of seconds to ensure page loads
+time.sleep(2)
+
+# Get and print the title of the webpage
+print("Page Title:", driver.title)
+
+# Get and print the current URL of the webpage
+print("Current URL:", driver.current_url)
+
+# Close the browser
+driver.quit
+OUTPUT:
+Page Title: Swag Labs
+Current URL: https://www.saucedemo.com/
+
+3.TEXT FILE
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+import time
+
+# Path to your ChromeDriver (update this path if needed)
+service = Service("path/to/chromedriver")
+
+# Initialize the Chrome browser
+driver = webdriver.Chrome(service=service)
+
+# Open the Saucedemo Labs website
+driver.get("https://www.saucedemo.com/")
+
+# Wait for a couple of seconds to ensure page loads
+time.sleep(2)
+
+# Extract the page source (HTML contents)
+page_contents = driver.page_source
+
+# Save the contents into a text file
+with open("Webpage_task_11.txt", "w", encoding="utf-8") as file:
+    file.write(page_contents)
+
+print("Webpage contents saved to Webpage_task_11.txt")
+
+# Close the browser
+driver.quit()
+
+PYTEST:
+1.title of webpage pytest
+import pytest
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+
+@pytest.fixture(scope="module")
+def driver():
+    # Path to your ChromeDriver (update this path if needed)
+    service = Service("path/to/chromedriver")
+    driver = webdriver.Chrome(service=service)
+    driver.get("https://www.saucedemo.com/")
+    yield driver
+    driver.quit()
+
+def test_title_positive(driver):
+    """Positive test case: Title should be 'Swag Labs'"""
+    assert driver.title == "Swag Labs", f"Expected title 'Swag Labs' but got {driver.title}"
+
+def test_title_negative(driver):
+    """Negative test case: Title should not be 'Sauce Demo'"""
+    assert driver.title != "Sauce Demo", f"Unexpected title found: {driver.title}"
+
+2.import pytest
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+
+@pytest.fixture(scope="module")
+def driver():
+    # Path to your ChromeDriver (update this path if needed)
+    service = Service("path/to/chromedriver")
+    driver = webdriver.Chrome(service=service)
+    driver.get("https://www.saucedemo.com/")
+    yield driver
+    driver.quit()
+
+def test_homepage_url_positive(driver):
+    """Positive test case: URL should be 'https://www.saucedemo.com/'"""
+    assert driver.current_url == "https://www.saucedemo.com/", \
+        f"Expected URL 'https://www.saucedemo.com/' but got {driver.current_url}"
+
+def test_homepage_url_negative(driver):
+    """Negative test case: URL should not be 'https://www.google.com/'"""
+    assert driver.current_url != "https://www.google.com/", \
+        f"Unexpected URL found: {driver.current_url}"
+
+3.URL OF DASHBOARD USING GIEN CREDENTIALS
+import pytest
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+import time
+
+@pytest.fixture(scope="module")
+def driver():
+    # Path to your ChromeDriver (update this path if needed)
+    service = Service("path/to/chromedriver")
+    driver = webdriver.Chrome(service=service)
+    driver.get("https://www.saucedemo.com/")
+    yield driver
+    driver.quit()
+
+def test_dashboard_url_after_login(driver):
+    """Positive test case: Verify dashboard URL after login"""
+    # Enter username
+    driver.find_element(By.ID, "user-name").send_keys("standard_user")
+    # Enter password
+    driver.find_element(By.ID, "password").send_keys("secret_sauce")
+    # Click login
+    driver.find_element(By.ID, "login-button").click()
+
+    time.sleep(2)  # wait for redirect
+
+    # Assert that the current URL is the inventory dashboard
+    assert driver.current_url == "https://www.saucedemo.com/inventory.html", \
+        f"Expected dashboard URL 'https://www.saucedemo.com/inventory.html' but got {driver.current_url}"
+
+def test_dashboard_url_negative(driver):
+    """Negative test case: URL should not be the login page after successful login"""
+    assert driver.current_url != "https://www.saucedemo.com/", \
+        f"Unexpectedly remained on login page: {driver.current_url}"

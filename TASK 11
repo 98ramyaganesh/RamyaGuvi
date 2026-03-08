@@ -1,0 +1,219 @@
+1.PYTHON SELENIUM FOR GUVI URL:
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+import time
+
+# Path to your ChromeDriver (update this path if needed)
+service = Service("path/to/chromedriver")
+driver = webdriver.Chrome(service=service)
+
+# Open GUVI homepage
+driver.get("https://www.guvi.in/")
+
+# Maximize window
+driver.maximize_window()
+
+# Click on the "Sign In" button (top right)
+driver.find_element(By.LINK_TEXT, "Sign In").click()
+
+time.sleep(2)  # wait for sign-in page to load
+
+# Enter email/username
+driver.find_element(By.ID, "email").send_keys("your_email@example.com")
+
+# Enter password
+driver.find_element(By.ID, "password").send_keys("your_password")
+
+# Click on login button
+driver.find_element(By.ID, "login").click()
+
+time.sleep(3)  # wait for redirect
+
+# Print current URL after login
+print("Current URL after login:", driver.current_url)
+
+# Close browser
+driver.quit()
+
+2.username and pwd is enabled
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+import time
+
+# Path to your ChromeDriver (update this path if needed)
+service = Service("path/to/chromedriver")
+driver = webdriver.Chrome(service=service)
+
+# Open GUVI sign-in page directly
+driver.get("https://www.guvi.in/sign-in")
+
+time.sleep(2)  # wait for page to load
+
+# Locate username (email) and password fields
+username_field = driver.find_element(By.ID, "email")
+password_field = driver.find_element(By.ID, "password")
+
+# Verify if fields are enabled
+print("Is username field enabled?", username_field.is_enabled())
+print("Is password field enabled?", password_field.is_enabled())
+
+# Close browser
+driver.quit()
+3.valid uname and pwd
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+import time
+
+# Path to your ChromeDriver (update this path if needed)
+service = Service("path/to/chromedriver")
+driver = webdriver.Chrome(service=service)
+
+# Open GUVI sign-in page directly
+driver.get("https://www.guvi.in/sign-in")
+
+driver.maximize_window()
+time.sleep(2)  # wait for page to load
+
+# Enter valid username/email
+driver.find_element(By.ID, "email").send_keys("your_valid_email@example.com")
+
+# Enter valid password
+driver.find_element(By.ID, "password").send_keys("your_valid_password")
+
+# Click on login button
+driver.find_element(By.ID, "login").click()
+
+time.sleep(3)  # wait for redirect
+
+# Verify login success by checking URL
+print("Current URL after login:", driver.current_url)
+
+# Optionally, assert dashboard URL
+assert driver.current_url == "https://www.guvi.in/dashboard", \
+    f"Expected dashboard URL but got {driver.current_url}"
+
+driver.quit()
+4.close browser
+# Close the current browser window
+driver.close()
+
+# OR, to close all windows and end the WebDriver session
+driver.quit()
+
+pytest
+1.pytest of lvalidate login of portal
+import pytest
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+import time
+
+@pytest.fixture(scope="module")
+def driver():
+    # Path to your ChromeDriver (update this path if needed)
+    service = Service("path/to/chromedriver")
+    driver = webdriver.Chrome(service=service)
+    driver.maximize_window()
+    yield driver
+    driver.quit()
+
+def test_login_positive(driver):
+    """Positive test case: Login with valid credentials"""
+    driver.get("https://www.guvi.in/sign-in")
+    driver.find_element(By.ID, "email").send_keys("your_valid_email@example.com")
+    driver.find_element(By.ID, "password").send_keys("your_valid_password")
+    driver.find_element(By.ID, "login").click()
+    time.sleep(3)
+
+    # Assert dashboard URL after successful login
+    assert driver.current_url == "https://www.guvi.in/dashboard", \
+        f"Expected dashboard URL but got {driver.current_url}"
+
+def test_login_negative(driver):
+    """Negative test case: Login with invalid credentials"""
+    driver.get("https://www.guvi.in/sign-in")
+    driver.find_element(By.ID, "email").send_keys("invalid_user@example.com")
+    driver.find_element(By.ID, "password").send_keys("wrong_password")
+    driver.find_element(By.ID, "login").click()
+    time.sleep(3)
+
+    # Assert that login fails and URL is still sign-in page
+    assert driver.current_url == "https://www.guvi.in/sign-in", \
+        f"Expected to remain on sign-in page but got {driver.current_url}"
+2.uname and pwd enabled
+import pytest
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+
+@pytest.fixture(scope="module")
+def driver():
+    # Path to your ChromeDriver (update this path if needed)
+    service = Service("path/to/chromedriver")
+    driver = webdriver.Chrome(service=service)
+    driver.get("https://www.guvi.in/sign-in")   # Portal login page
+    driver.maximize_window()
+    yield driver
+    driver.quit()
+
+def test_username_field_enabled(driver):
+    """Validate that the username/email input box is enabled"""
+    username_field = driver.find_element(By.ID, "email")
+    assert username_field.is_enabled(), "Username field is not enabled"
+
+def test_password_field_enabled(driver):
+    """Validate that the password input box is enabled"""
+    password_field = driver.find_element(By.ID, "password")
+    assert password_field.is_enabled(), "Password field is not enabled"
+3.submit button:
+import pytest
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+import time
+
+@pytest.fixture(scope="module")
+def driver():
+    # Path to your ChromeDriver (update this path if needed)
+    service = Service("path/to/chromedriver")
+    driver = webdriver.Chrome(service=service)
+    driver.maximize_window()
+    yield driver
+    driver.quit()
+
+def test_submit_button_valid_login(driver):
+    """Positive test case: Submit button works with valid credentials"""
+    driver.get("https://www.guvi.in/sign-in")
+
+    # Enter valid credentials
+    driver.find_element(By.ID, "email").send_keys("your_valid_email@example.com")
+    driver.find_element(By.ID, "password").send_keys("your_valid_password")
+
+    # Click submit/login button
+    driver.find_element(By.ID, "login").click()
+    time.sleep(3)
+
+    # Assert redirect to dashboard
+    assert driver.current_url == "https://www.guvi.in/dashboard", \
+        f"Expected dashboard URL but got {driver.current_url}"
+
+def test_submit_button_invalid_login(driver):
+    """Negative test case: Submit button works with invalid credentials"""
+    driver.get("https://www.guvi.in/sign-in")
+
+    # Enter invalid credentials
+    driver.find_element(By.ID, "email").send_keys("invalid_user@example.com")
+    driver.find_element(By.ID, "password").send_keys("wrong_password")
+
+    # Click submit/login button
+    driver.find_element(By.ID, "login").click()
+    time.sleep(3)
+
+    # Assert that login fails and URL is still sign-in page
+    assert driver.current_url == "https://www.guvi.in/sign-in", \
+        f"Expected to remain on sign-in page but got {driver.current_url}"
+
+

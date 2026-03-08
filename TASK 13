@@ -1,0 +1,65 @@
+1.drag drop
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.action_chains import ActionChains
+import time
+
+# Path to your ChromeDriver (update this path if needed)
+service = Service("path/to/chromedriver")
+driver = webdriver.Chrome(service=service)
+
+# Open the jQueryUI droppable demo page
+driver.get("https://jqueryui.com/droppable/")
+driver.maximize_window()
+
+# Switch to the iframe that contains the draggable and droppable elements
+driver.switch_to.frame(driver.find_element(By.CLASS_NAME, "demo-frame"))
+
+# Locate the draggable (white box) and droppable (yellow box) elements
+draggable = driver.find_element(By.ID, "draggable")
+droppable = driver.find_element(By.ID, "droppable")
+
+# Perform drag and drop using ActionChains
+actions = ActionChains(driver)
+actions.drag_and_drop(draggable, droppable).perform()
+
+time.sleep(3)  # wait to observe the result
+
+# Verify the drop by checking text change
+print("Droppable text after drop:", droppable.text)
+
+driver.quit()
+
+2.pytest of drag drop
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.action_chains import ActionChains
+import time
+
+# Path to your ChromeDriver (update this path if needed)
+service = Service("path/to/chromedriver")
+driver = webdriver.Chrome(service=service)
+
+# Open the jQueryUI droppable demo page
+driver.get("https://jqueryui.com/droppable/")
+driver.maximize_window()
+
+# Switch to the iframe that contains the draggable and droppable elements
+driver.switch_to.frame(driver.find_element(By.CLASS_NAME, "demo-frame"))
+
+# Locate the draggable (white box) and droppable (yellow box) elements
+draggable = driver.find_element(By.ID, "draggable")
+droppable = driver.find_element(By.ID, "droppable")
+
+# Perform drag and drop using ActionChains
+actions = ActionChains(driver)
+actions.drag_and_drop(draggable, droppable).perform()
+
+time.sleep(3)  # wait to observe the result
+
+# Verify the drop by checking text change
+print("Droppable text after drop:", droppable.text)
+
+driver.quit()

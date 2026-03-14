@@ -1,0 +1,139 @@
+base_page.py
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException, NoSuchElementException, ElementClickInterceptedException
+
+class BasePage:
+    def __init__(self, driver):
+        self.driver = driver
+        self.wait = WebDriverWait(driver, 10)
+
+    def click(self, locator):
+        try:
+            self.wait.until(EC.element_to_be_clickable(locator)).click()
+        except (TimeoutException, ElementClickInterceptedException) as e:
+            raise Exception(f"Failed to click element {locator}: {e}")
+
+    def type(self, locator, text):
+        try:
+            element = self.wait.until(EC.visibility_of_element_located(locator))
+            element.clear()
+            element.send_keys(text)
+        except TimeoutException as e:
+            raise Exception(f"Failed to type into element {locator}: {e}")
+
+    def is_visible(self, locator):
+        try:
+            return self.wait.until(EC.visibility_of_element_located(locator)).is_displayed()
+        except TimeoutException:
+            return False
+
+    def is_enabled(self, locator):
+        try:
+            return self.wait.until(EC.presence_of_element_located(locator)).is_enabled()
+        except NoSuchElementException:
+            return False
+2.login_page.py
+
+from selenium.webdriver.common.by import By
+from pages.base_page import BasePage
+
+class LoginPage(BasePage):
+    USERNAME = (By.ID, "username")
+    PASSWORD = (By.ID, "password")
+    LOGIN_BTN = (By.ID, "loginBtn")
+    ERROR_MSG = (By.ID, "errorMessage")
+
+    def login(self, username, password):
+        self.type(self.USERNAME, username)
+        self.type(self.PASSWORD, password)
+        self.click(self.LOGIN_BTN)
+
+    def is_username_box_visible(self):
+        return self.is_visible(self.USERNAME)
+
+    def is_password_box_visible(self):
+        return self.is_visible(self.PASSWORD)
+
+    def is_login_button_enabled(self):
+        return self.is_enabled(self.LOGIN_BTN)
+
+    def get_error_message(self):
+        try:
+            return self.wait.until(EC.visibility_of_element_located(self.ERROR_MSG)).text
+        except TimeoutException:
+            return None
+3.logout button
+
+from selenium.webdriver.common.by import By
+from pages.base_page import BasePage
+
+class HomePage(BasePage):
+    LOGOUT_BTN = (By.ID, "logoutBtn")
+
+    def logout(self):
+        self.click(self.LOGOUT_BTN)
+
+    def is_logout_button_visible(self):
+
+
+4.conftest
+
+import pytest
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+
+@pytest.fixture(scope="function")
+def driver():
+    chrome_options = Options()
+    chrome_options.add_argument("--start-maximized")
+    service = Service()
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+    driver.get("https://zenportal.example.com")  
+    yield driver
+    driver.quit()
+5.pytests
+import pytest
+from pages.login_page import LoginPage
+from pages.home_page import HomePage
+
+class TestZenPortal:
+
+    def test_successful_login_logout(self, driver):
+        login_page = LoginPage(driver)
+        home_page = HomePage(driver)
+
+        login_page.login("validUser", "validPassword")
+        assert "Dashboard" in driver.page_source
+
+        assert home_page.is_logout_button_visible()
+        home_page.logout()
+        assert "Login" in driver.page_source
+
+    def test_unsuccessful_login(self, driver):
+        login_page = LoginPage(driver)
+
+        login_page.login("invalidUser", "wrongPassword")
+        error_msg = login_page.get_error_message()
+        assert error_msg is not None
+        assert "Invalid credentials" in error_msg
+
+    def test_validate_username_password_boxes(self, driver):
+        login_page = LoginPage(driver)
+
+        assert login_page.is_username_box_visible()
+        assert login_page.is_password_box_visible()
+
+    def test_validate_login_button(self, driver):
+        login_page = LoginPage(driver)
+
+        assert login_page.is_login_button_enabled()
+
+    def test_validate_logout_button(self, driver):
+        login_page = LoginPage(driver)
+        home_page = HomePage(driver)
+
+        login_page.login("validUser", "validPassword")
+        assert home_page.is_logout_button_visible()
+

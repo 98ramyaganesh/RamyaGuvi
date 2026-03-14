@@ -1,0 +1,152 @@
+1.XPATH
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+driver = webdriver.Chrome()
+driver.get("https://www.guvi.in/")
+
+wait = WebDriverWait(driver, 10)
+
+# Locate a child element (example: anchor inside nav)
+child_element = wait.until(EC.presence_of_element_located(
+    (By.XPATH, "//nav[@class='navbar']/child::div")
+))
+
+# Locate parent of an element with href
+parent_element = driver.find_element(
+    By.XPATH, "//a[@href='/courses']/parent::li"
+)
+
+# Locate sibling element (following sibling)
+sibling_element = driver.find_element(
+    By.XPATH, "//a[@href='/courses']/parent::li/following-sibling::li"
+)
+
+print("Child:", child_element.tag_name)
+print("Parent:", parent_element.tag_name)
+print("Sibling:", sibling_element.tag_name)
+
+2.AXES
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+driver = webdriver.Chrome()
+driver.get("https://www.guvi.in/")
+
+wait = WebDriverWait(driver, 10)
+
+# Example: find ancestor of an element with href
+ancestor = driver.find_element(
+    By.XPATH, "//a[@href='/courses']/ancestor::ul"
+)
+
+# Example: find following sibling
+following_sibling = driver.find_element(
+    By.XPATH, "//a[@href='/courses']/parent::li/following-sibling::li"
+)
+
+# Example: find preceding sibling
+preceding_sibling = driver.find_element(
+    By.XPATH, "//a[@href='/courses']/parent::li/preceding-sibling::li"
+)
+
+print("Ancestor tag:", ancestor.tag_name)
+print("Following sibling tag:", following_sibling.tag_name)
+print("Preceding sibling tag:", preceding_sibling.tag_name)
+
+driver.quit()
+3.base_page.py
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
+
+class BasePage:
+    def __init__(self, driver, timeout=10):
+        self.driver = driver
+        self.wait = WebDriverWait(driver, timeout)
+
+    def find(self, locator):
+        try:
+            return self.wait.until(EC.presence_of_element_located(locator))
+        except TimeoutException:
+            return None
+4.nav_page.py
+from selenium.webdriver.common.by import By
+from pages.base_page import BasePage
+
+class NavPage(BasePage):
+    # Example: Courses link in navbar
+    COURSES_LINK = (By.XPATH, "//a[@href='/courses']")
+
+    def get_courses_link(self):
+        return self.find(self.COURSES_LINK)
+
+    def get_parent_li(self):
+        return self.driver.find_element(
+            By.XPATH, "//a[@href='/courses']/parent::li"
+        )
+
+    def get_ancestor_ul(self):
+        return self.driver.find_element(
+            By.XPATH, "//a[@href='/courses']/ancestor::ul"
+        )
+
+    def get_following_sibling(self):
+        return self.driver.find_element(
+            By.XPATH, "//a[@href='/courses']/parent::li/following-sibling::li"
+        )
+
+    def get_preceding_sibling(self):
+        return self.driver.find_element(
+            By.XPATH, "//a[@href='/courses']/parent::li/preceding-sibling::li"
+        )
+driver.quit()
+5. conftest.py
+import pytest
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+
+@pytest.fixture(scope="function")
+def driver():
+    chrome_options = Options()
+    chrome_options.add_argument("--start-maximized")
+    service = Service()
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+    driver.get("https://www.guvi.in/")
+    yield driver
+    driver.quit()
+6.PYTEST
+
+import pytest
+from pages.nav_page import NavPage
+
+class TestGuviNav:
+
+    def test_courses_link_exists(self, driver):
+        nav_page = NavPage(driver)
+        assert nav_page.get_courses_link() is not None
+
+    def test_parent_element(self, driver):
+        nav_page = NavPage(driver)
+        parent = nav_page.get_parent_li()
+        assert parent.tag_name == "li"
+
+    def test_ancestor_element(self, driver):
+        nav_page = NavPage(driver)
+        ancestor = nav_page.get_ancestor_ul()
+        assert ancestor.tag_name == "ul"
+
+    def test_following_sibling(self, driver):
+        nav_page = NavPage(driver)
+        sibling = nav_page.get_following_sibling()
+        assert sibling.tag_name == "li"
+
+    def test_preceding_sibling(self, driver):
+        nav_page = NavPage(driver)
+        sibling = nav_page.get_preceding_sibling()
+        assert sibling.tag_name == "li"

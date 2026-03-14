@@ -1,0 +1,110 @@
+SauceDemo offers several built-in test accounts:
+standard_user
+locked_out_user
+problem_user
+performance_glitch_user
+error_user
+pwd:sauce_demo
+
+base_page.py
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
+
+class BasePage:
+    def __init__(self, driver, timeout=10):
+        self.driver = driver
+        self.wait = WebDriverWait(driver, timeout)
+
+    def click(self, locator):
+        try:
+            self.wait.until(EC.element_to_be_clickable(locator)).click()
+        except TimeoutException:
+            raise Exception(f"Element {locator} not clickable")
+
+    def type(self, locator, text):
+        try:
+            element = self.wait.until(EC.visibility_of_element_located(locator))
+            element.clear()
+            element.send_keys(text)
+        except TimeoutException:
+            raise Exception(f"Element {locator} not visible")
+
+2.login_page.py
+from selenium.webdriver.common.by import By
+from pages.base_page import BasePage
+
+class LoginPage(BasePage):
+    USERNAME = (By.ID, "user-name")
+    PASSWORD = (By.ID, "password")
+    LOGIN_BTN = (By.ID, "login-button")
+    ERROR_MSG = (By.CSS_SELECTOR, "h3[data-test='error']")
+
+    def login(self, username, password):
+        self.type(self.USERNAME, username)
+        self.type(self.PASSWORD, password)
+        self.click(self.LOGIN_BTN)
+
+    def get_error_message(self):
+        try:
+            return self.wait.until(EC.visibility_of_element_located(self.ERROR_MSG)).text
+        except TimeoutException:
+            return None
+
+3.home_page.py
+from selenium.webdriver.common.by import By
+from pages.base_page import BasePage
+
+class HomePage(BasePage):
+    MENU_BTN = (By.ID, "react-burger-menu-btn")
+    LOGOUT_BTN = (By.ID, "logout_sidebar_link")
+
+    def logout(self):
+        self.click(self.MENU_BTN)
+        self.click(self.LOGOUT_BTN)
+
+4.conftest.py
+import pytest
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+
+@pytest.fixture(scope="function")
+def driver():
+    chrome_options = Options()
+    chrome_options.add_argument("--start-maximized")
+    service = Service()
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+    driver.get("https://opensource-demo.orangehrmlive.com/")
+    yield driver
+    driver.quit()
+
+5.test_login_ddt.py
+import pytest
+from pages.login_page import LoginPage
+from pages.home_page import HomePage
+
+# Data-driven credentials
+credentials = [
+    ("standard_user", "secret_sauce"),
+    ("locked_out_user", "secret_sauce"),
+    ("problem_user", "secret_sauce"),
+    ("performance_glitch_user", "secret_sauce"),
+    ("error_user", "secret_sauce"),
+]
+
+@pytest.mark.parametrize("username,password", credentials)
+def test_login_ddt(driver, username, password):
+    login_page = LoginPage(driver)
+    home_page = HomePage(driver)
+
+    login_page.login(username, password)
+
+    if "Products" in driver.page_source:
+        # Successful login
+        home_page.logout()
+        assert "Login" in driver.page_source
+    else:
+        # Failed login
+        assert login_page.get_error_message() is not None
+

@@ -1,0 +1,59 @@
+1.Basepage
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.common.exceptions import TimeoutException
+
+class BasePage:
+    def __init__(self, driver, timeout=10):
+        self.driver = driver
+        self.wait = WebDriverWait(driver, timeout)
+
+    def get_text(self, locator):
+        try:
+            return self.wait.until(EC.visibility_of_element_located(locator)).text
+        except TimeoutException:
+            return None
+2.population_page.py
+from selenium.webdriver.common.by import By
+from pages.base_page import BasePage
+
+class PopulationPage(BasePage):
+    # XPath for world population counter
+    POPULATION_COUNTER = (By.XPATH, "//div[@class='maincounter-number']/span")
+
+    def get_population(self):
+        return self.get_text(self.POPULATION_COUNTER)
+4.conftest.py
+import pytest
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+
+@pytest.fixture(scope="function")
+def driver():
+    chrome_options = Options()
+    chrome_options.add_argument("--start-maximized")
+    service = Service()
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+    driver.get("https://www.theworldcounts.com/")
+    yield driver
+    driver.quit()
+
+5.pytest
+# tests/test_population.py
+import time
+import pytest
+from pages.population_page import PopulationPage
+
+def test_population_counter(driver):
+    population_page = PopulationPage(driver)
+
+    try:
+        while True:
+            population = population_page.get_population()
+            if population:
+                print( Current World Population: {population}")
+            time.sleep(1)  
+    except KeyboardInterrupt:
+        print("\n Stopped by user (Ctrl+C)")
+

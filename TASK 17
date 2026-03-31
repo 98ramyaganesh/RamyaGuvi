@@ -1,0 +1,120 @@
+1.login.py
+from playwright.sync_api import Page, expect, TimeoutError
+
+class LoginPage:
+    def __init__(self, page: Page):
+        self.page = page
+        self.username_input = page.locator("#username")
+        self.password_input = page.locator("#password")
+        self.login_button = page.locator("#loginBtn")
+        self.error_message = page.locator("#errorMsg")
+
+    def load(self):
+        try:
+            self.page.goto("https://zenportal.example.com/login")
+        except Exception as e:
+            raise Exception(f"Failed to load login page: {e}")
+
+    def login(self, username: str, password: str):
+        try:
+            expect(self.username_input).to_be_visible(timeout=5000)
+            self.username_input.fill(username)
+
+            expect(self.password_input).to_be_visible(timeout=5000)
+            self.password_input.fill(password)
+
+            expect(self.login_button).to_be_enabled(timeout=5000)
+            self.login_button.click()
+        except TimeoutError:
+            raise Exception("Login elements not found within timeout")
+        except Exception as e:
+            raise Exception(f"Unexpected error during login: {e}")
+
+    def is_error_displayed(self):
+        try:
+            return self.error_message.is_visible()
+        except Exception:
+            return False
+2.homepage.py
+from playwright.sync_api import Page, expect, TimeoutError
+
+class HomePage:
+    def __init__(self, page: Page):
+        self.page = page
+        self.logout_button = page.locator("#logoutBtn")
+
+    def logout(self):
+        try:
+            expect(self.logout_button).to_be_visible(timeout=5000)
+            self.logout_button.click()
+        except TimeoutError:
+            raise Exception("Logout button not found or not clickable")
+3.pytests:
+import pytest
+from pages.login_page import LoginPage
+from pages.home_page import HomePage
+
+def test_successful_login_logout(page):
+    login_page = LoginPage(page)
+    home_page = HomePage(page)
+
+    login_page.load()
+    login_page.login("validUser", "validPassword")
+
+    # Assert logout button visible
+    assert home_page.logout_button.is_visible()
+
+    home_page.logout()
+    assert page.url.endswith("/login")
+
+def test_unsuccessful_login(page):
+    login_page = LoginPage(page)
+    login_page.load()
+    login_page.login("invalidUser", "wrongPassword")
+
+    assert login_page.is_error_displayed()
+
+def test_username_input_box(page):
+    login_page = LoginPage(page)
+    login_page.load()
+    expect(login_page.username_input).to_be_visible()
+    login_page.username_input.fill("testUser")
+    assert login_page.username_input.input_value() == "testUser"
+
+def test_password_input_box(page):
+    login_page = LoginPage(page)
+    login_page.load()
+    expect(login_page.password_input).to_be_visible()
+    login_page.password_input.fill("secretPwd")
+    assert login_page.password_input.input_value() == "secretPwd"
+
+def test_submit_button(page):
+    login_page = LoginPage(page)
+    login_page.load()
+    expect(login_page.login_button).to_be_enabled()
+
+def test_logout_button(page):
+    login_page = LoginPage(page)
+    home_page = HomePage(page)
+
+    login_page.load()
+    login_page.login("validUser", "validPassword")
+
+    expect(home_page.logout_button).to_be_visible()
+    home_page.logout()
+    assert page.url.endswith("/login")
+
+4.pytest fixture
+import pytest
+from playwright.sync_api import sync_playwright
+
+@pytest.fixture
+def page():
+    with sync_playwright() as p:
+        browser = p.chromium.launch(headless=False)
+        context = browser.new_context()
+        page = context.new_page()
+        yield page
+        context.close()
+        browser.close()
+

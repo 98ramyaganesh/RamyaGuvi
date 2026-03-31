@@ -1,0 +1,24 @@
+Robot Framework Test Case for Login Functionality
+
+*** Settings ***
+Library    SeleniumLibrary
+
+*** Variables ***
+${URL}           http://guvi.in
+${BROWSER}       Chrome
+${USERNAME}      valid_username
+${PASSWORD}      valid_password
+
+*** Test Cases ***
+Verify Login Functionality
+    [Documentation]    Test to verify login functionality including open browser, login, verify, and logout
+    Open Browser    ${URL}    ${BROWSER}
+    Maximize Browser Window
+    Input Text    id=Ramya    ${USERNAME}
+    Input Text    id=Guvi123    ${PASSWORD}
+    Click Button    id=loginButton
+    Wait Until Element Is Visible    id=landingPageElement    timeout=10s
+    Element Should Be Visible    id=landingPageElement
+    Click Link    id=logoutLink
+    Close Browser
+

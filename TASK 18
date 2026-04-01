@@ -1,0 +1,123 @@
+1.Gherkin:
+Feature: Zen Portal Login and Logout
+  As a user
+  I want to test login and logout functionality
+  So that I can validate authentication and session handling
+
+  Scenario: Successful login
+    Given I am on the Zen portal login page
+    When I login with username "standard_user" and password "secret_sauce"
+    Then I should see the dashboard page
+
+  Scenario: Unsuccessful login
+    Given I am on the Zen portal login page
+    When I login with username "locked_out_user" and password "secret_sauce"
+    Then I should see an error message
+
+  Scenario: Input boxes and submit button
+    Given I am on the Zen portal login page
+    Then the username input box should be visible
+    And the password input box should be visible
+    And the submit button should be visible
+
+  Scenario: Logout functionality
+    Given I am logged into the Zen portal
+    When I click the logout button
+    Then I should be redirected to the login page
+
+2.login.py
+from selenium.webdriver.common.by import By
+from pages.base_page import BasePage
+
+class LoginPage(BasePage):
+    USERNAME = (By.ID, "user-name")
+    PASSWORD = (By.ID, "password")
+    LOGIN_BTN = (By.ID, "login-button")
+    ERROR_MSG = (By.CSS_SELECTOR, ".error-message-container")
+
+    def login(self, username, password):
+        self.driver.find_element(*self.USERNAME).send_keys(username)
+        self.driver.find_element(*self.PASSWORD).send_keys(password)
+        self.driver.find_element(*self.LOGIN_BTN).click()
+
+    def is_username_box_present(self):
+        return self.driver.find_element(*self.USERNAME).is_displayed()
+
+    def is_password_box_present(self):
+        return self.driver.find_element(*self.PASSWORD).is_displayed()
+
+    def is_submit_button_present(self):
+        return self.driver.find_element(*self.LOGIN_BTN).is_displayed()
+
+    def get_error_message(self):
+        return self.driver.find_element(*self.ERROR_MSG).text
+3.dashboard.py
+from selenium.webdriver.common.by import By
+from pages.base_page import BasePage
+
+class DashboardPage(BasePage):
+    MENU_BTN = (By.ID, "react-burger-menu-btn")
+    LOGOUT_LINK = (By.ID, "logout_sidebar_link")
+
+    def logout(self):
+        self.driver.find_element(*self.MENU_BTN).click()
+        self.driver.find_element(*self.LOGOUT_LINK).click()
+
+4.Allure
+import allure
+from behave import given, when, then
+from pages.login_page import LoginPage
+from pages.dashboard_page import DashboardPage
+
+@given("I am on the Zen portal login page")
+def step_impl(context):
+    context.driver.get("https://www.saucedemo.com/")  # replace with Zen portal URL
+    context.login_page = LoginPage(context.driver)
+
+@when('I login with username "{username}" and password "{password}"')
+def step_impl(context, username, password):
+    with allure.step("Entering credentials"):
+        context.login_page.login(username, password)
+    context.dashboard_page = DashboardPage(context.driver)
+
+@then("I should see the dashboard page")
+def step_impl(context):
+    with allure.step("Verifying dashboard"):
+        assert "inventory" in context.driver.current_url
+
+@then("I should see an error message")
+def step_impl(context):
+    with allure.step("Verifying error message"):
+        assert "Epic sadface" in context.login_page.get_error_message()
+
+@then("the username input box should be visible")
+def step_impl(context):
+    with allure.step("Checking username box"):
+        assert context.login_page.is_username_box_present()
+
+@then("the password input box should be visible")
+def step_impl(context):
+    with allure.step("Checking password box"):
+        assert context.login_page.is_password_box_present()
+
+@then("the submit button should be visible")
+def step_impl(context):
+    with allure.step("Checking submit button"):
+        assert context.login_page.is_submit_button_present()
+
+@given("I am logged into the Zen portal")
+def step_impl(context):
+    context.driver.get("https://www.saucedemo.com/")
+    context.login_page = LoginPage(context.driver)
+    context.login_page.login("standard_user", "secret_sauce")
+    context.dashboard_page = DashboardPage(context.driver)
+
+@when("I click the logout button")
+def step_impl(context):
+    with allure.step("Clicking logout"):
+        context.dashboard_page.logout()
+
+@then("I should be redirected to the login page")
+def step_impl(context):
+    with allure.step("Verifying logout redirection"):
+        assert "login" in context.driver.page_source

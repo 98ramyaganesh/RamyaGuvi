@@ -1,0 +1,52 @@
+*** Settings ***
+Library    SeleniumLibrary
+
+*** Variables ***
+${URL}       https://www.saucedemo.com/
+${BROWSER}   Chrome
+${USERNAME}  standard_user
+${PASSWORD}  secret_sauce
+
+*** Test Cases ***
+Add Multiple Products And Verify Checkout
+    Open Browser    ${URL}    ${BROWSER}
+    Input Text    id:user-name    ${USERNAME}
+    Input Text    id:password     ${PASSWORD}
+    Click Button    id:login-button
+    Wait Until Page Contains Element    css:.inventory_list
+
+    # Add multiple products
+    Click Button    id:add-to-cart-sauce-labs-backpack
+    Click Button    id:add-to-cart-sauce-labs-bike-light
+    Click Button    id:add-to-cart-sauce-labs-bolt-t-shirt
+
+    # Go to cart
+    Click Link    css:.shopping_cart_link
+    Wait Until Page Contains Element    css:.cart_item
+
+    # Verify products are present in cart
+    Page Should Contain Element    xpath://div[@class="inventory_item_name" and text()="Sauce Labs Backpack"]
+    Page Should Contain Element    xpath://div[@class="inventory_item_name" and text()="Sauce Labs Bike Light"]
+    Page Should Contain Element    xpath://div[@class="inventory_item_name" and text()="Sauce Labs Bolt T-Shirt"]
+
+    # Verify quantity (each should be 1 by default)
+    Element Text Should Be    xpath:(//div[@class="cart_quantity"])[1]    1
+    Element Text Should Be    xpath:(//div[@class="cart_quantity"])[2]    1
+    Element Text Should Be    xpath:(//div[@class="cart_quantity"])[3]    1
+
+    # Proceed to checkout
+    Click Button    id:checkout
+    Wait Until Page Contains Element    id:first-name
+
+    # Fill checkout info
+    Input Text    id:first-name    Ganesh
+    Input Text    id:last-name     TestUser
+    Input Text    id:postal-code   600001
+    Click Button    id:continue
+
+    # Verify products still listed on checkout overview
+    Page Should Contain Element    xpath://div[@class="inventory_item_name" and text()="Sauce Labs Backpack"]
+    Page Should Contain Element    xpath://div[@class="inventory_item_name" and text()="Sauce Labs Bike Light"]
+    Page Should Contain Element    xpath://div[@class="inventory_item_name" and text()="Sauce Labs Bolt T-Shirt"]
+
+    Close Browser

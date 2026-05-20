@@ -1,53 +1,99 @@
-Python Base Page
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+Cross Browser Setup
+# utils/driver_factory.py
+from selenium import webdriver
 
-class BasePage:
+class DriverFactory:
+    def get_driver(self, browser="chrome"):
+        if browser == "chrome":
+            return webdriver.Chrome()
+        elif browser == "firefox":
+            return webdriver.Firefox()
+        elif browser == "edge":
+            return webdriver.Edge()
+        elif browser == "safari":
+            return webdriver.Safari()
+        else:
+            raise Exception(f"Browser {browser} not supported")
+
+2 Python with POM
+# tests/test_homepage.py
+import pytest
+from pages.homepage import HomePage
+
+@pytest.mark.usefixtures("setup")
+class TestHomePage:
+
+    def test_url_is_valid(self):
+        self.driver.get("https://www.guvi.in")
+        assert "guvi.in" in self.driver.current_url
+
+    def test_title_is_correct(self):
+        self.driver.get("https://www.guvi.in")
+        assert self.driver.title == "GUVI | Learn to code in your native language"
+
+    def test_login_button(self):
+        home = HomePage(self.driver)
+        assert home.is_login_button_visible()
+        home.click_login_button()
+        assert "login" in self.driver.current_url
+3 Login and sign up
+# pages/homepage.py
+from selenium.webdriver.common.by import By
+
+class HomePage:
+    LOGIN_BTN = (By.XPATH, "//a[text()='Login']")
+    SIGNUP_BTN = (By.XPATH, "//a[text()='Sign Up']")
+
     def __init__(self, driver):
         self.driver = driver
-        self.wait = WebDriverWait(driver, 10)
 
-    def click(self, locator):
-        try:
-            element = self.wait.until(EC.element_to_be_clickable(locator))
-            element.click()
-        except Exception as e:
-            raise Exception(f"Error clicking element {locator}: {str(e)}")
+    def is_login_button_visible(self):
+        return self.driver.find_element(*self.LOGIN_BTN).is_displayed()
 
-    def get_text(self, locator):
-        try:
-            element = self.wait.until(EC.visibility_of_element_located(locator))
-            return element.text
-        except Exception as e:
-            raise Exception(f"Error fetching text from {locator}: {str(e)}")
+    def click_login_button(self):
+        self.driver.find_element(*self.LOGIN_BTN).click()
 
-    def navigate(self, url):
-        self.driver.get(url)
+    def is_signup_button_visible(self):
+        return self.driver.find_element(*self.SIGNUP_BTN).is_displayed()
 
-2 Sample Test Case
-import pytest
-from pages.home_page import HomePage
+    def click_signup_button(self):
+        self.driver.find_element(*self.SIGNUP_BTN).click()
+4 Exception handling
+try:
+    element = self.driver.find_element(*self.LOGIN_BTN)
+    element.click()
+except Exception as e:
+    self.logger.error(f"Login button not clickable: {e}")
+    pytest.fail("Login button test failed")
 
-def test_homepage_title(driver):
-    home = HomePage(driver)
-    home.navigate("https://www.guvi.in")
-    assert driver.title == "GUVI | Learn to code in your native language"
+5 Test Scenarios 
+# pages/login_page.py
+from selenium.webdriver.common.by import By
 
-3 Login Test
-def test_login_valid(driver):
-    login = LoginPage(driver)
-    login.navigate_to_login()
-    login.login("valid_email@example.com", "valid_password")
-    assert "dashboard" in driver.current_url.lower()
+class LoginPage:
+    EMAIL = (By.ID, "email")
+    PASSWORD = (By.ID, "password")
+    LOGIN_BTN = (By.XPATH, "//button[text()='Login']")
+    ERROR_MSG = (By.CLASS_NAME, "error-message")
+    DASHBOARD = (By.ID, "dashboard")
 
-def test_login_invalid(driver):
-    login = LoginPage(driver)
-    login.navigate_to_login()
-    login.login("wrong_email@example.com", "wrong_password")
-    assert login.get_error_message() == "Invalid email or password"
+    def __init__(self, driver):
+        self.driver = driver
 
-4 Reportand Logs
-import logging
-logging.basicConfig(filename="reports/test.log", level=logging.INFO)
-logging.info("Test started")
+    def open(self):
+        self.driver.get("https://www.guvi.in/login")
 
+    def enter_email(self, email):
+        self.driver.find_element(*self.EMAIL).send_keys(email)
+
+    def enter_password(self, password):
+        self.driver.find_element(*self.PASSWORD).send_keys(password)
+
+    def click_login(self):
+        self.driver.find_element(*self.LOGIN_BTN).click()
+
+    def is_error_message_displayed(self):
+        return self.driver.find_element(*self.ERROR_MSG).is_displayed()
+
+    def is_dashboard_loaded(self):
+        return self.driver.find_element(*self.DASHBOARD).is_displayed()

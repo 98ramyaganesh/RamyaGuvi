@@ -1,0 +1,160 @@
+Pytest
+from selenium.webdriver.support.wait import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+class BasePage:
+    def __init__(self, driver):
+        self.driver = driver
+        self.wait = WebDriverWait(driver, 10)
+
+    def click(self, locator):
+        self.wait.until(EC.element_to_be_clickable(locator)).click()
+
+    def type(self, locator, text):
+        self.wait.until(EC.visibility_of_element_located(locator)).send_keys(text)
+
+    def get_text(self, locator):
+        return self.wait.until(EC.visibility_of_element_located(locator)).text
+2 Login Page
+from selenium.webdriver.common.by import By
+from pages.base_page import BasePage
+
+class LoginPage(BasePage):
+    username = (By.ID, "user-name")
+    password = (By.ID, "password")
+    login_btn = (By.ID, "login-button")
+    error_msg = (By.CSS_SELECTOR, "h3[data-test='error']")
+
+    def login(self, user, pwd):
+        self.type(self.username, user)
+        self.type(self.password, pwd)
+        self.click(self.login_btn)
+
+    def get_error(self):
+        return self.get_text(self.error_msg)
+3 Test Case
+import pytest
+from pages.login_page import LoginPage
+
+@pytest.mark.parametrize("user,pwd,expected", [
+    ("standard_user", "secret_sauce", "success"),
+    ("locked_out_user", "secret_sauce", "error"),
+    ("invalid_user", "wrong_pass", "error")
+])
+def test_login(driver, user, pwd, expected):
+    login = LoginPage(driver)
+    login.login(user, pwd)
+    if expected == "success":
+        assert "inventory.html" in driver.current_url
+    else:
+        assert "Epic sadface" in login.get_error()
+Test Case 1 
+Login wit Various users:
+import pytest
+from pages.login_page import LoginPage
+
+@pytest.mark.parametrize("user,pwd,expected", [
+    ("standard_user", "secret_sauce", "success"),
+    ("locked_out_user", "secret_sauce", "error"),
+    ("problem_user", "secret_sauce", "success"),
+    ("performance_glitch_user", "secret_sauce", "success")
+])
+def test_login_various_users(driver, user, pwd, expected):
+    login = LoginPage(driver)
+    login.login(user, pwd)
+    if expected == "success":
+        assert "inventory.html" in driver.current_url
+    else:
+        assert "Epic sadface" in login.get_error()
+TC 2 
+Invalid Credentials
+def test_login_invalid(driver):
+    login = LoginPage(driver)
+    login.login("invalid_user", "wrong_pass")
+    assert "Epic sadface" in login.get_error()
+TC3 Logout 
+
+from pages.products_page import ProductsPage
+
+def test_logout(driver):
+    login = LoginPage(driver)
+    login.login("standard_user", "secret_sauce")
+    products = ProductsPage(driver)
+    products.logout()
+    assert "saucedemo.com" in driver.current_url
+
+TC4 Cart icon
+from pages.products_page import ProductsPage
+
+def test_logout(driver):
+    login = LoginPage(driver)
+    login.login("standard_user", "secret_sauce")
+    products = ProductsPage(driver)
+    products.logout()
+    assert "saucedemo.com" in driver.current_url
+
+TC 5 Product Selection
+from pages.products_page import ProductsPage
+
+def test_logout(driver):
+    login = LoginPage(driver)
+    login.login("standard_user", "secret_sauce")
+    products = ProductsPage(driver)
+    products.logout()
+    assert "saucedemo.com" in driver.current_url
+TC6
+Add product to cart 
+def test_add_products_to_cart(driver):
+    login = LoginPage(driver)
+    login.login("standard_user", "secret_sauce")
+    products = ProductsPage(driver)
+    selected = products.select_random_products(4)
+    products.add_to_cart(selected)
+    assert products.get_cart_count() == 4
+TC7
+Validate roduct Details 
+from pages.cart_page import CartPage
+
+def test_cart_details(driver):
+    login = LoginPage(driver)
+    login.login("standard_user", "secret_sauce")
+    products = ProductsPage(driver)
+    selected = products.select_random_products(2)
+    products.add_to_cart(selected)
+    cart = CartPage(driver)
+    cart.open()
+    cart_items = cart.get_cart_items()
+    assert set(selected) == set(cart_items)
+TC 8
+Checkout
+from pages.cart_page import CartPage
+
+def test_cart_details(driver):
+    login = LoginPage(driver)
+    login.login("standard_user", "secret_sauce")
+    products = ProductsPage(driver)
+    selected = products.select_random_products(2)
+    products.add_to_cart(selected)
+    cart = CartPage(driver)
+    cart.open()
+    cart_items = cart.get_cart_items()
+    assert set(selected) == set(cart_items)
+TC 9 
+Sorting
+def test_sorting(driver):
+    login = LoginPage(driver)
+    login.login("standard_user", "secret_sauce")
+    products = ProductsPage(driver)
+    products.sort_by("Price (low to high)")
+    sorted_prices = products.get_all_prices()
+    assert sorted_prices == sorted(sorted_prices)
+TC 10 
+Reset App
+def test_reset_app_state(driver):
+    login = LoginPage(driver)
+    login.login("standard_user", "secret_sauce")
+    products = ProductsPage(driver)
+    products.select_random_products(2)
+    products.add_to_cart()
+    products.reset_app_state()
+    assert products.get_cart_count() == 0

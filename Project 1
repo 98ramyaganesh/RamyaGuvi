@@ -1,0 +1,53 @@
+Python Base Page
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+
+class BasePage:
+    def __init__(self, driver):
+        self.driver = driver
+        self.wait = WebDriverWait(driver, 10)
+
+    def click(self, locator):
+        try:
+            element = self.wait.until(EC.element_to_be_clickable(locator))
+            element.click()
+        except Exception as e:
+            raise Exception(f"Error clicking element {locator}: {str(e)}")
+
+    def get_text(self, locator):
+        try:
+            element = self.wait.until(EC.visibility_of_element_located(locator))
+            return element.text
+        except Exception as e:
+            raise Exception(f"Error fetching text from {locator}: {str(e)}")
+
+    def navigate(self, url):
+        self.driver.get(url)
+
+2 Sample Test Case
+import pytest
+from pages.home_page import HomePage
+
+def test_homepage_title(driver):
+    home = HomePage(driver)
+    home.navigate("https://www.guvi.in")
+    assert driver.title == "GUVI | Learn to code in your native language"
+
+3 Login Test
+def test_login_valid(driver):
+    login = LoginPage(driver)
+    login.navigate_to_login()
+    login.login("valid_email@example.com", "valid_password")
+    assert "dashboard" in driver.current_url.lower()
+
+def test_login_invalid(driver):
+    login = LoginPage(driver)
+    login.navigate_to_login()
+    login.login("wrong_email@example.com", "wrong_password")
+    assert login.get_error_message() == "Invalid email or password"
+
+4 Reportand Logs
+import logging
+logging.basicConfig(filename="reports/test.log", level=logging.INFO)
+logging.info("Test started")
+

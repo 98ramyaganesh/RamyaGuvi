@@ -1,62 +1,54 @@
-*** Settings ***
-Library    SeleniumLibrary
+Feature: Login functionality
 
-*** Variables ***
-${URL}     https://www.saucedemo.com/
-${USERNAME_FIELD}    id:user-name
-${PASSWORD_FIELD}    id:password
-${LOGIN_BUTTON}      id:login-button
-${ERROR_MESSAGE}     css:.error-message-container
+  Scenario Outline: Validate login with multiple credentials
+    Given I open the OrangeHRM login page
+    When I login with username "<username>" and password "<password>"
+    Then I should see "<expected_result>"
 
-*** Keywords ***
-Open SauceDemo
-    Open Browser    ${URL}    chrome
-    Maximize Browser Window
+    Examples:
+      | username       | password     | expected_result |
+      | Admin          | admin123     | success         |
+      | invalid_user   | wrong_pass   | failure         |
 
-Login With Credentials
-    [Arguments]    ${username}    ${password}
-    Input Text    ${USERNAME_FIELD}    ${username}
-    Input Text    ${PASSWORD_FIELD}    ${password}
-    Click Button    ${LOGIN_BUTTON}
+from behave import given, when, then
+from pages.login_page import LoginPage
 
-Verify Login Success
-    Page Should Contain Element    css:.inventory_list
+@given("I open the OrangeHRM login page")
+def step_open_login(context):
+    context.login_page = LoginPage(context.driver)
+    context.login_page.open()
 
-Verify Login Failure
-    Page Should Contain Element    ${ERROR_MESSAGE}
+@when('I login with username "{username}" and password "{password}"')
+def step_login(context, username, password):
+    context.login_page.login(username, password)
 
-Logout
-    Click Element    id:react-burger-menu-btn
-    Click Element    id:logout_sidebar_link
-    Page Should Contain Element    ${LOGIN_BUTTON}
+@then('I should see "{expected_result}"')
+def step_validate_login(context, expected_result):
+    if expected_result == "success":
+        assert context.login_page.is_dashboard_visible()
+    else:
+        assert context.login_page.is_error_message_visible()
+from selenium.webdriver.common.by import By
 
+class LoginPage:
+    def __init__(self, driver):
+        self.driver = driver
+        self.url = "https://opensource-demo.orangehrmlive.com/"
+        self.username_field = (By.ID, "txtUsername")
+        self.password_field = (By.ID, "txtPassword")
+        self.login_button = (By.ID, "btnLogin")
+        self.error_message = (By.ID, "spanMessage")
 
+    def open(self):
+        self.driver.get(self.url)
 
-*** Settings ***
-Resource    ../resources/LoginPage.robot
-Library     SeleniumLibrary
-Test Setup  Open SauceDemo
-Test Teardown  Close Browser
+    def login(self, username, password):
+        self.driver.find_element(*self.username_field).send_keys(username)
+        self.driver.find_element(*self.password_field).send_keys(password)
+        self.driver.find_element(*self.login_button).click()
 
-*** Test Cases ***
-Login With Standard User
-    Login With Credentials    standard_user    secret_sauce
-    Verify Login Success
+    def is_dashboard_visible(self):
+        return "dashboard" in self.driver.current_url.lower()
 
-Login With Locked Out User
-    Login With Credentials    locked_out_user    secret_sauce
-    Verify Login Failure
-
-Login With Invalid Credentials
-    Login With Credentials    invalid_user    wrong_pass
-    Verify Login Failure
-
-Validate Logout Functionality
-    Login With Credentials    standard_user    secret_sauce
-    Verify Login Success
-    Logout
-CSV 
-username,password,expected
-standard_user,secret_sauce,success
-locked_out_user,secret_sauce,failure
-invalid_user,wrong_pass,failure
+    def is_error_message_visible(self):
+        return self.driver.find_element(*self.error_message).is_displayed()

@@ -1,3 +1,20 @@
+OrangeHRM_Automation/
+│── Tests/
+│   ├── login_tests.robot
+│   ├── menu_tests.robot
+│   ├── user_management_tests.robot
+│   ├── leave_claim_tests.robot
+│── Resources/
+│   ├── LoginPage.robot
+│   ├── DashboardPage.robot
+│   ├── AdminPage.robot
+│   ├── MyInfoPage.robot
+│── Data/
+│   ├── credentials.csv
+│── Results/
+│   ├── log.html
+│   ├── report.html
+│── README.md
 Feature: Login functionality
 
   Scenario Outline: Validate login with multiple credentials

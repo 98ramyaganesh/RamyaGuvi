@@ -1,194 +1,62 @@
-1 Driver setup
-import pytest
-from selenium import webdriver
+*** Settings ***
+Library    SeleniumLibrary
 
-@pytest.fixture(params=["chrome", "firefox"])
-def driver(request):
-    if request.param == "chrome":
-        driver = webdriver.Chrome()
-    elif request.param == "firefox":
-        driver = webdriver.Firefox()
-    driver.maximize_window()
-    yield driver
-    driver.quit()
+*** Variables ***
+${URL}     https://www.saucedemo.com/
+${USERNAME_FIELD}    id:user-name
+${PASSWORD_FIELD}    id:password
+${LOGIN_BUTTON}      id:login-button
+${ERROR_MESSAGE}     css:.error-message-container
 
-2 Login Page
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+*** Keywords ***
+Open SauceDemo
+    Open Browser    ${URL}    chrome
+    Maximize Browser Window
 
-class LoginPage:
-    URL = "https://opensource-demo.orangehrmlive.com/"
-    USERNAME = (By.ID, "txtUsername")
-    PASSWORD = (By.ID, "txtPassword")
-    LOGIN_BTN = (By.ID, "btnLogin")
-    ERROR_MSG = (By.ID, "spanMessage")
-    FORGOT_LINK = (By.LINK_TEXT, "Forgot your password?")
+Login With Credentials
+    [Arguments]    ${username}    ${password}
+    Input Text    ${USERNAME_FIELD}    ${username}
+    Input Text    ${PASSWORD_FIELD}    ${password}
+    Click Button    ${LOGIN_BUTTON}
 
-    def __init__(self, driver):
-        self.driver = driver
+Verify Login Success
+    Page Should Contain Element    css:.inventory_list
 
-    def open(self):
-        self.driver.get(self.URL)
+Verify Login Failure
+    Page Should Contain Element    ${ERROR_MESSAGE}
 
-    def login(self, username, password):
-        self.driver.find_element(*self.USERNAME).send_keys(username)
-        self.driver.find_element(*self.PASSWORD).send_keys(password)
-        self.driver.find_element(*self.LOGIN_BTN).click()
+Logout
+    Click Element    id:react-burger-menu-btn
+    Click Element    id:logout_sidebar_link
+    Page Should Contain Element    ${LOGIN_BUTTON}
 
-    def is_logged_in(self):
-        return "dashboard" in self.driver.current_url
 
-    def is_error_displayed(self):
-        return WebDriverWait(self.driver, 5).until(
-            EC.visibility_of_element_located(self.ERROR_MSG)
-        )
 
-    def click_forgot_password(self):
-        self.driver.find_element(*self.FORGOT_LINK).click()
-3 Login Page
-from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
+*** Settings ***
+Resource    ../resources/LoginPage.robot
+Library     SeleniumLibrary
+Test Setup  Open SauceDemo
+Test Teardown  Close Browser
 
-class LoginPage:
-    URL = "https://opensource-demo.orangehrmlive.com/"
-    USERNAME = (By.ID, "txtUsername")
-    PASSWORD = (By.ID, "txtPassword")
-    LOGIN_BTN = (By.ID, "btnLogin")
-    ERROR_MSG = (By.ID, "spanMessage")
-    FORGOT_LINK = (By.LINK_TEXT, "Forgot your password?")
+*** Test Cases ***
+Login With Standard User
+    Login With Credentials    standard_user    secret_sauce
+    Verify Login Success
 
-    def __init__(self, driver):
-        self.driver = driver
+Login With Locked Out User
+    Login With Credentials    locked_out_user    secret_sauce
+    Verify Login Failure
 
-    def open(self):
-        self.driver.get(self.URL)
+Login With Invalid Credentials
+    Login With Credentials    invalid_user    wrong_pass
+    Verify Login Failure
 
-    def login(self, username, password):
-        self.driver.find_element(*self.USERNAME).send_keys(username)
-        self.driver.find_element(*self.PASSWORD).send_keys(password)
-        self.driver.find_element(*self.LOGIN_BTN).click()
-
-    def is_logged_in(self):
-        return "dashboard" in self.driver.current_url
-
-    def is_error_displayed(self):
-        return WebDriverWait(self.driver, 5).until(
-            EC.visibility_of_element_located(self.ERROR_MSG)
-        )
-
-    def click_forgot_password(self):
-        self.driver.find_element(*self.FORGOT_LINK).click()
-
-4 TestCase 1,2,3,7
-import pytest
-from pages.login_page import LoginPage
-from utils.data_loader import get_login_data
-
-def test_homepage_accessible(driver):
-    login_page = LoginPage(driver)
-    login_page.open()
-    assert "OrangeHRM" in driver.title
-
-def test_login_fields_visible(driver):
-    login_page = LoginPage(driver)
-    login_page.open()
-    assert driver.find_element(*LoginPage.USERNAME).is_displayed()
-    assert driver.find_element(*LoginPage.PASSWORD).is_displayed()
-
-@pytest.mark.parametrize("username,password,expected", get_login_data())
-def test_login_with_multiple_credentials(driver, username, password, expected):
-    login_page = LoginPage(driver)
-    login_page.open()
-    login_page.login(username, password)
-    if expected == "success":
-        assert login_page.is_logged_in()
-    else:
-        assert login_page.is_error_displayed()
-
-def test_forgot_password(driver):
-    login_page = LoginPage(driver)
-    login_page.open()
-    login_page.click_forgot_password()
-    assert "requestPasswordResetCode" in driver.current_url
-5 Test Case 4,8
-from pages.login_page import LoginPage
-
-def test_main_menu_items(driver):
-    login_page = LoginPage(driver)
-    login_page.open()
-    login_page.login("Admin", "admin123")
-    expected_items = ["Admin", "PIM", "Leave", "Time", "Recruitment", "My Info", "Performance", "Dashboard"]
-    for item in expected_items:
-        assert driver.find_element_by_link_text(item).is_displayed()
-
-def test_my_info_submenus(driver):
-    login_page = LoginPage(driver)
-    login_page.open()
-    login_page.login("Admin", "admin123")
-    driver.find_element_by_link_text("My Info").click()
-    submenus = ["Personal Details", "Contact Details", "Emergency Contacts"]
-    for submenu in submenus:
-        assert driver.find_element_by_link_text(submenu).is_displayed()
-Test case 5,6
-def test_create_new_user(driver):
-    # Login as Admin
-    driver.get("https://opensource-demo.orangehrmlive.com/")
-    driver.find_element_by_id("txtUsername").send_keys("Admin")
-    driver.find_element_by_id("txtPassword").send_keys("admin123")
-    driver.find_element_by_id("btnLogin").click()
-
-    # Navigate to Admin > User Management
-    driver.find_element_by_link_text("Admin").click()
-    driver.find_element_by_id("btnAdd").click()
-    driver.find_element_by_id("systemUser_employeeName_empName").send_keys("Linda Anderson")
-    driver.find_element_by_id("systemUser_userName").send_keys("newuser123")
-    driver.find_element_by_id("systemUser_password").send_keys("Password123!")
-    driver.find_element_by_id("systemUser_confirmPassword").send_keys("Password123!")
-    driver.find_element_by_id("btnSave").click()
-
-    # Logout and login with new user
-    driver.find_element_by_id("welcome").click()
-    driver.find_element_by_link_text("Logout").click()
-    driver.find_element_by_id("txtUsername").send_keys("newuser123")
-    driver.find_element_by_id("txtPassword").send_keys("Password123!")
-    driver.find_element_by_id("btnLogin").click()
-    assert "dashboard" in driver.current_url
-
-def test_new_user_in_admin_list(driver):
-    driver.find_element_by_link_text("Admin").click()
-    driver.find_element_by_id("searchSystemUser_userName").send_keys("newuser123")
-    driver.find_element_by_id("searchBtn").click()
-    assert "newuser123" in driver.page_source
-Tc 9
-def test_assign_leave(driver):
-    driver.get("https://opensource-demo.orangehrmlive.com/")
-    driver.find_element_by_id("txtUsername").send_keys("Admin")
-    driver.find_element_by_id("txtPassword").send_keys("admin123")
-    driver.find_element_by_id("btnLogin").click()
-
-    driver.find_element_by_link_text("Leave").click()
-    driver.find_element_by_link_text("Assign Leave").click()
-    driver.find_element_by_id("assignleave_txtEmployee_empName").send_keys("Linda Anderson")
-    driver.find_element_by_id("assignleave_txtLeaveType").send_keys("Annual Leave")
-    driver.find_element_by_id("assignleave_txtFromDate").send_keys("2026-05-21")
-    driver.find_element_by_id("assignleave_txtToDate").send_keys("2026-05-22")
-    driver.find_element_by_id("assignBtn").click()
-
-    assert "Successfully Assigned" in driver.page_source
-TC10
-def test_initiate_claim(driver):
-    driver.get("https://opensource-demo.orangehrmlive.com/")
-    driver.find_element_by_id("txtUsername").send_keys("Admin")
-    driver.find_element_by_id("txtPassword").send_keys("admin123")
-    driver.find_element_by_id("btnLogin").click()
-
-    driver.find_element_by_link_text("Claim").click()
-    driver.find_element_by_id("btnAdd").click()
-    driver.find_element_by_id("claimRequest_claimType").send_keys("Medical")
-    driver.find_element_by_id("claimRequest_amount").send_keys("5000")
-    driver.find_element_by_id("claimRequest_comments").send_keys("Medical reimbursement")
-    driver.find_element_by_id("btnSave").click()
-
-    assert "Successfully Saved" in driver.page_source
+Validate Logout Functionality
+    Login With Credentials    standard_user    secret_sauce
+    Verify Login Success
+    Logout
+CSV 
+username,password,expected
+standard_user,secret_sauce,success
+locked_out_user,secret_sauce,failure
+invalid_user,wrong_pass,failure

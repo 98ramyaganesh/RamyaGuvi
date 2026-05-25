@@ -1,3 +1,37 @@
+saucedemo_bdd_framework/
+│
+├── features/
+│   ├── login.feature
+│   ├── cart.feature
+│   ├── checkout.feature
+│   ├── products.feature
+│   └── environment.py
+│
+├── features/steps/
+│   ├── login_steps.py
+│   ├── cart_steps.py
+│   ├── checkout_steps.py
+│   └── products_steps.py
+│
+├── pages/
+│   ├── base_page.py
+│   ├── login_page.py
+│   ├── products_page.py
+│   ├── cart_page.py
+│   └── checkout_page.py
+│
+├── utils/
+│   ├── data_loader.py
+│   ├── logger.py
+│   └── screenshot.py
+│
+├── reports/
+│   └── allure-results/
+│
+├── requirements.txt
+└── README.md
+
+Login
 *** Settings ***
 Library    SeleniumLibrary
 

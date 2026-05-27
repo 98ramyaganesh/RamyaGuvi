@@ -1,69 +1,38 @@
-saucedemo_bdd_framework/
-│
-├── features/
-│   ├── login.feature
-│   ├── cart.feature
-│   ├── checkout.feature
-│   ├── products.feature
-│   └── environment.py
-│
-├── features/steps/
-│   ├── login_steps.py
-│   ├── cart_steps.py
-│   ├── checkout_steps.py
-│   └── products_steps.py
-│
-├── pages/
-│   ├── base_page.py
-│   ├── login_page.py
-│   ├── products_page.py
-│   ├── cart_page.py
-│   └── checkout_page.py
-│
-├── utils/
-│   ├── data_loader.py
-│   ├── logger.py
-│   └── screenshot.py
-│
-├── reports/
-│   └── allure-results/
-│
-├── requirements.txt
-└── README.md
+This project automates testing of the demo e‑commerce web application SauceDemo.
+The objective is to validate core functionalities such as login, product selection, cart operations, checkout, sorting, and reset state.
+The framework is built using Robot Framework with a modular Page Object Model (POM) design, data‑driven testing, and professional reporting.
 
-Login
-*** Settings ***
-Library    SeleniumLibrary
+Test Suite Coverage:
+- Login Tests: Valid/invalid users, locked‑out user, logout
+- Cart Tests: Cart icon visibility, random product selection, cart validation
+- Checkout Tests: Order summary, screenshot capture, confirmation message
+- Sorting Tests: Validate sorting options (price, name)
+- Reset Tests: Validate “Reset App State” functionality
 
-*** Variables ***
-${URL}     https://www.saucedemo.com/
-${USERNAME_FIELD}    id:user-name
-${PASSWORD_FIELD}    id:password
-${LOGIN_BUTTON}      id:login-button
-${ERROR_MESSAGE}     css:.error-message-container
+SauceDemo_Automation/
+│── resources/
+│   ├── LoginPage.robot
+│   ├── ProductsPage.robot
+│   ├── CartPage.robot
+│   ├── CheckoutPage.robot
+│   ├── BaseKeywords.robot
+│── tests/
+│   ├── login_tests.robot
+│   ├── cart_tests.robot
+│   ├── checkout_tests.robot
+│   ├── sorting_tests.robot
+│   ├── reset_tests.robot
+│── data/
+│   ├── users.csv
+│   ├── products.csv
+│── results/
+│   ├── report.html
+│   ├── log.html
+│   ├── screenshots/
+│── README.md
+│── requirements.txt
 
-*** Keywords ***
-Open SauceDemo
-    Open Browser    ${URL}    chrome
-    Maximize Browser Window
-
-Login With Credentials
-    [Arguments]    ${username}    ${password}
-    Input Text    ${USERNAME_FIELD}    ${username}
-    Input Text    ${PASSWORD_FIELD}    ${password}
-    Click Button    ${LOGIN_BUTTON}
-
-Verify Login Success
-    Page Should Contain Element    css:.inventory_list
-
-Verify Login Failure
-    Page Should Contain Element    ${ERROR_MESSAGE}
-
-Logout
-    Click Element    id:react-burger-menu-btn
-    Click Element    id:logout_sidebar_link
-    Page Should Contain Element    ${LOGIN_BUTTON}
-
+Login Page:
 *** Settings ***
 Resource    ../resources/LoginPage.robot
 Library     SeleniumLibrary
@@ -87,8 +56,10 @@ Validate Logout Functionality
     Login With Credentials    standard_user    secret_sauce
     Verify Login Success
     Logout
-csv
+
+users.csv
 username,password,expected
 standard_user,secret_sauce,success
 locked_out_user,secret_sauce,failure
 invalid_user,wrong_pass,failure
+
